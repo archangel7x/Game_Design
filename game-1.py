@@ -21,7 +21,8 @@ BLUE= (0,0,255)
 RED= (255,0,0)
 GREEN=(0,255,0)
 
-
+SHAKE_DURATION = 5
+SHAKE_AMOUNT = 2
 
 
 PADDING = PADTOPBOTTOM, PADLEFTRIGHT = 0, 0
@@ -52,6 +53,18 @@ char_color = GREY
 font = pygame.font.Font('freesansbold.ttf',32)
 textX = 10
 textY = 10
+
+
+def shake_screen():
+    original_position = screen.get_rect().topleft
+    for _ in range(SHAKE_DURATION):
+        dx, dy = random.randint(-SHAKE_AMOUNT, SHAKE_AMOUNT), random.randint(-SHAKE_AMOUNT, SHAKE_AMOUNT)
+        screen.blit(_VARS['surf'], (dx, dy))
+        pygame.display.flip()
+        pygame.time.delay(1)
+        screen.blit(_VARS['surf'], original_position)
+        pygame.display.flip()
+
 
 def show_score(x,y,score):
     
@@ -94,7 +107,8 @@ drawRect()
  
 class falling:
     def __init__(self):
-        self.size = random.randint(10,50)
+        #self.size = random.randint(10,50)
+        self.size = 10
         #self.color = (random.randint(0,255),random.randint(0,255), random.randint(0,255))
         self.color =random.choice([BLUE,RED,GREEN])
         self.x = random.randint(PADLEFTRIGHT,SCREEN_WIDTH - PADLEFTRIGHT)
@@ -177,12 +191,15 @@ while True:
         if distance < pacman_radius + shape.size:
             if char_color == shape.color:
                 score += 1
+                
                #  print("Score:", score)
             else:
                 score -=1 
+                
                 # print("Death")
 
             falling_shapes.remove(shape)
+            shake_screen()
             # Update the display
 
     if (pacman_x - pacman_radius <PADLEFTRIGHT or pacman_x + pacman_radius > SCREEN_WIDTH - PADLEFTRIGHT or pacman_y - pacman_radius < PADTOPBOTTOM or pacman_y + pacman_radius >SCREEN_HEIGHT - PADTOPBOTTOM):
@@ -193,7 +210,7 @@ while True:
   
    
     # Drawing of the sprites
-    if random.randint(1,100) == 1:
+    if random.randint(1,200) == 1:
         #char_color = (random.randint(0,255),random.randint(0,255), random.randint(0,255))
         char_color = random.choice([BLUE,RED,GREEN])
     
