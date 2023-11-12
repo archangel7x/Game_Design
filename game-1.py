@@ -44,6 +44,22 @@ pacman_x = SCREEN_WIDTH // 2
 pacman_y = SCREEN_HEIGHT // 2
 pacman_direction = 0  # 0: right, 1: up, 2: left, 3: down
 
+
+
+
+score = 0 
+char_color = GREY
+font = pygame.font.Font('freesansbold.ttf',32)
+textX = 10
+textY = 10
+
+def show_score(x,y,score):
+    
+    showing = font.render("Score: "+ str(score),True, (255,255,255))
+    screen.blit(showing,(x, y))
+    
+    
+
 # Main game loop
 def drawRect():
     # There's a native way to draw a rectangle in pygame,
@@ -79,7 +95,8 @@ drawRect()
 class falling:
     def __init__(self):
         self.size = random.randint(10,50)
-        self.color = random.choice([RED, GREEN, BLUE])
+        #self.color = (random.randint(0,255),random.randint(0,255), random.randint(0,255))
+        self.color =random.choice([BLUE,RED,GREEN])
         self.x = random.randint(PADLEFTRIGHT,SCREEN_WIDTH - PADLEFTRIGHT)
         self.y = 0
  
@@ -146,12 +163,27 @@ while True:
 
     # Draw the background
     screen.fill(GREY3)
+    show_score(textX,textY,score)
     drawRect()
     
    
         
     for shape in falling_shapes:
         shape.draw(screen)
+        
+        
+    for shape in falling_shapes:
+        distance = ((pacman_x - shape.x) ** 2 + (pacman_y - shape.y) ** 2) ** 0.5
+        if distance < pacman_radius + shape.size:
+            if char_color == shape.color:
+                score += 1
+               #  print("Score:", score)
+            else:
+                score -=1 
+                # print("Death")
+
+            falling_shapes.remove(shape)
+            # Update the display
 
     if (pacman_x - pacman_radius <PADLEFTRIGHT or pacman_x + pacman_radius > SCREEN_WIDTH - PADLEFTRIGHT or pacman_y - pacman_radius < PADTOPBOTTOM or pacman_y + pacman_radius >SCREEN_HEIGHT - PADTOPBOTTOM):
         pacman_x, pacman_y = old_pacman_x, old_pacman_y
@@ -159,13 +191,20 @@ while True:
         #sys.exit()
         
   
-
+   
     # Drawing of the sprites
+    if random.randint(1,100) == 1:
+        #char_color = (random.randint(0,255),random.randint(0,255), random.randint(0,255))
+        char_color = random.choice([BLUE,RED,GREEN])
     
-    pygame.draw.circle(screen, YELLOW, (pacman_x, pacman_y), pacman_radius)
-    pygame.draw.circle(screen, GREY3, (pacman_x, pacman_y), int(pacman_radius - 0.1 * pacman_radius))
-        # Update the display
     
+    pygame.draw.circle(screen, BLACK, (pacman_x, pacman_y), pacman_radius)
+    pygame.draw.circle(screen, char_color, (pacman_x, pacman_y), int(pacman_radius - 0.1 * pacman_radius))
+    
+    
+    
+
+        
     falling_shapes = [shape for shape in falling_shapes if shape.y < SCREEN_HEIGHT]
 
     pygame.display.flip()
