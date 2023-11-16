@@ -2,12 +2,12 @@ import pygame
 import sys
 from colour import Color
 import random 
-
+import time
 # Initialize Pygame
 pygame.init()
 
 # Constants
-FPS = 120
+FPS = 60
 
 # Colors
 BLACK = (0, 0, 0)
@@ -21,9 +21,11 @@ BLUE= (0,0,255)
 RED= (255,0,0)
 GREEN=(0,255,0)
 
-SHAKE_DURATION = 5
-SHAKE_AMOUNT = 2
+SHAKE_DURATION = 10
+SHAKE_AMOUNT = 5
 
+GOOD_SHAKE_DURATION = 10
+GOOD_SHAKE_AMOUNT =1 
 
 PADDING = PADTOPBOTTOM, PADLEFTRIGHT = 0, 0
 # VARS:
@@ -47,23 +49,41 @@ pacman_direction = 0  # 0: right, 1: up, 2: left, 3: down
 
 
 
-
+# right_counter = 0
 score = 0 
 char_color = GREY
 font = pygame.font.Font('freesansbold.ttf',32)
 textX = 10
 textY = 10
+char_color = random.choice([BLUE,RED,GREEN])
+timer = 0
+swap_time = 60 
+ball_speed = 10
+frame_counter = 0
 
 
 def shake_screen():
     original_position = screen.get_rect().topleft
-    for _ in range(SHAKE_DURATION):
+    for i in range(SHAKE_DURATION):
         dx, dy = random.randint(-SHAKE_AMOUNT, SHAKE_AMOUNT), random.randint(-SHAKE_AMOUNT, SHAKE_AMOUNT)
         screen.blit(_VARS['surf'], (dx, dy))
         pygame.display.flip()
-        pygame.time.delay(1)
+        pygame.time.delay(10)
         screen.blit(_VARS['surf'], original_position)
         pygame.display.flip()
+        
+        
+def good_shake():
+    original_position = screen.get_rect().topleft
+        
+    for  j in range(GOOD_SHAKE_DURATION):
+        dx, dy = random.randint(-GOOD_SHAKE_AMOUNT, GOOD_SHAKE_AMOUNT), random.randint(-GOOD_SHAKE_AMOUNT, GOOD_SHAKE_AMOUNT)
+        screen.blit(_VARS['surf'], (dx, dy))
+        pygame.display.flip()
+        pygame.time.delay(0)
+        screen.blit(_VARS['surf'], original_position)
+        pygame.display.flip()
+    
 
 
 def show_score(x,y,score):
@@ -71,6 +91,12 @@ def show_score(x,y,score):
     showing = font.render("Score: "+ str(score),True, (255,255,255))
     screen.blit(showing,(x, y))
     
+"""
+def show_right(x,y,right_counter):
+    showing = font.render("Presses: "+ str(right_counter),True, (255,255,255))
+    screen.blit(showing,(x, y)) 
+
+"""
     
 
 # Main game loop
@@ -107,15 +133,15 @@ drawRect()
  
 class falling:
     def __init__(self):
-        #self.size = random.randint(10,50)
-        self.size = 10
+        self.size = random.randint(20,50)
+        #self.size = 10
         #self.color = (random.randint(0,255),random.randint(0,255), random.randint(0,255))
         self.color =random.choice([BLUE,RED,GREEN])
         self.x = random.randint(PADLEFTRIGHT,SCREEN_WIDTH - PADLEFTRIGHT)
         self.y = 0
  
-    def update(self):
-        self.y +=5
+    def update(self,ball_speed):
+        self.y +=ball_speed
         
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (self.x, int(self.y)), self.size)
@@ -134,7 +160,7 @@ while True:
     
     keys = pygame.key.get_pressed()
     pygame.display.update()
-    speed = 100
+    speed = 50
     
     old_pacman_x, old_pacman_y = pacman_x, pacman_y
     
@@ -143,6 +169,10 @@ while True:
         pacman_direction = 0
         pacman_x += int(SCREEN_WIDTH / speed)  # Adjust the movement speed relative to the screen size
         #pygame.draw.circle(screen, YELLOW, (pacman_x, pacman_y), pacman_radius)
+        
+       # right_counter +=1
+        
+        
         #print("right")
 
     elif keys[pygame.K_UP]:
@@ -168,7 +198,7 @@ while True:
         
     
     for shape in falling_shapes:
-        shape.update()    
+        shape.update(ball_speed)    
      
 
     # Generate new falling shapes randomly
@@ -178,28 +208,43 @@ while True:
     # Draw the background
     screen.fill(GREY3)
     show_score(textX,textY,score)
+   # show_right(10,50,right_counter)
+
     drawRect()
     
    
         
     for shape in falling_shapes:
         shape.draw(screen)
+        shape.draw(screen)
         
+        
+    frame_counter+=1
+    if frame_counter % 60 == 0:
+        falling_shapes.append(falling())
+    
         
     for shape in falling_shapes:
         distance = ((pacman_x - shape.x) ** 2 + (pacman_y - shape.y) ** 2) ** 0.5
         if distance < pacman_radius + shape.size:
             if char_color == shape.color:
                 score += 1
+                good_shake()
+                if score %10 == 0:
+                    ball_speed+=5
                 
+     
+                
+                           
                #  print("Score:", score)
             else:
                 score -=1 
+                shake_screen()
                 
                 # print("Death")
 
             falling_shapes.remove(shape)
-            shake_screen()
+           
             # Update the display
 
     if (pacman_x - pacman_radius <PADLEFTRIGHT or pacman_x + pacman_radius > SCREEN_WIDTH - PADLEFTRIGHT or pacman_y - pacman_radius < PADTOPBOTTOM or pacman_y + pacman_radius >SCREEN_HEIGHT - PADTOPBOTTOM):
@@ -212,8 +257,11 @@ while True:
     # Drawing of the sprites
     if random.randint(1,200) == 1:
         #char_color = (random.randint(0,255),random.randint(0,255), random.randint(0,255))
+    
         char_color = random.choice([BLUE,RED,GREEN])
     
+    
+     
     
     pygame.draw.circle(screen, BLACK, (pacman_x, pacman_y), pacman_radius)
     pygame.draw.circle(screen, char_color, (pacman_x, pacman_y), int(pacman_radius - 0.1 * pacman_radius))
